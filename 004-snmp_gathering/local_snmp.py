@@ -193,17 +193,14 @@ class SNMPHandler:
             data_speed[f'interface.{row[1]}.speed'] = row[3]
             data_adminStatus[f'interface.{row[1]}.adminStatus'] = row[4]
             data_operStatus[f'interface.{row[1]}.operStatus'] = row[5]
-
             try:
                 data_inboundTraffic[f'interface.{row[1]}.inboundTraffic'] = self.traffic_calc(self.prev_data.at[int(row[0]), 'ifHCInOctets'], self.prev_t_in, row[6], self.t_in)
             except:
                 data_inboundTraffic[f'interface.{row[1]}.inboundTraffic'] = 0
-
             try:
                 data_outboundTraffic[f'interface.{row[1]}.outboundTraffic'] = self.traffic_calc(self.prev_data.at[int(row[0]), 'ifHCOutOctets'], self.prev_t_out, row[7], self.t_out)
             except:
                 data_outboundTraffic[f'interface.{row[1]}.outboundTraffic'] = 0
-
             if pd.notna(row[8]):
                 data_currentRxLaserPower[f'interface.{row[1]}.currentRxLaserPower'] = row[8]
             if pd.notna(row[9]):
