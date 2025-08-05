@@ -5,8 +5,6 @@ import subprocess
 import threading
 import time
 
-from concurrent.futures import ProcessPoolExecutor
-
 
 max_worker = 10
 hosts_file = "hosts.yml"
