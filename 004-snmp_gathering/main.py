@@ -6,13 +6,13 @@ import threading
 import time
 
 
-max_worker = 10
-hosts_file = "hosts.yml"
-running_process = {}
+HOSTS_FILE = "hosts.yml"
+RUNNING_PROCESS = {}
+INTERVAL = 300
 
 
 def call_pyshell(info):
-    running_process[info['name']] = ["[.]", 0]
+    RUNNING_PROCESS[info['name']] = ["[.]", 0]
     while True:
         try:
             start_time = time.time()
@@ -20,19 +20,19 @@ def call_pyshell(info):
             result = subprocess.run(command.split(' '))
             end_time = time.time()
             if result.returncode == 0:
-                running_process[info['name']] = ["[+]", round(end_time - start_time, 4)]
+                RUNNING_PROCESS[info['name']] = ["[+]", round(end_time - start_time, 4)]
             else:
-                running_process[info['name']] = ["[-]", round(end_time - start_time, 4)]
+                RUNNING_PROCESS[info['name']] = ["[-]", round(end_time - start_time, 4)]
         except:
-            running_process[info['name']] = ["[x]", 0]
-        time.sleep(120)
+            RUNNING_PROCESS[info['name']] = ["[x]", 0]
+        time.sleep(INTERVAL)
 
 
 def report_schedule():
     while True:
-        print(f"[*] Reporting: detect {len(running_process)} devices")
+        print(f"[*] Reporting: detect {len(RUNNING_PROCESS)} devices")
         with open("snmp_report.txt", "w") as f:
-            for k, val in running_process.items():
+            for k, val in RUNNING_PROCESS.items():
                 f.write(f"{val[0]} {k}: {val[1]}s\n")
         time.sleep(60)
 
@@ -40,7 +40,7 @@ def report_schedule():
 def run_snmp_gathering():
     threads = []
     try:
-        with open(hosts_file, 'r') as file:
+        with open(HOSTS_FILE, 'r') as file:
             devices_info = yaml.safe_load(file)
         for info in devices_info['snmp']:
             t_shell = threading.Thread(target=call_pyshell, args=(info,))
@@ -50,7 +50,7 @@ def run_snmp_gathering():
         for t in threads:
             t.start()
     except FileNotFoundError:
-        print(f"[x] System: {hosts_file} not found.")
+        print(f"[x] System: {HOSTS_FILE} not found.")
     except yaml.YAMLError as exc:
         print(f"[x] System: Error parsing YAML: {exc}")
 
