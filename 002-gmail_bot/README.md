@@ -1,5 +1,6 @@
 # Email Tool
 
+
 ## Introduction
 This is a simple email tool that allows you to send emails using Python.
 
