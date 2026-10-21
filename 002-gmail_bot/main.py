@@ -1,9 +1,12 @@
+#!/usr/bin/env python3
+
 import yagmail
 import time
 import os
 import dotenv
 from pathlib import Path
 import glob
+
 
 
 class Email_Sender:
@@ -21,14 +24,17 @@ class Email_Sender:
         self.__path = os.path.dirname(os.path.abspath(__file__))
         for file in glob.glob(os.path.join(str(self.__path), "attachments/*")):
             self.__attachment.append(file)
+
     
     def set_receiver_email(self, receiver_email_list: list):
         self.__receiver_email_list = receiver_email_list
+
     
     def set_mail(self, subject: str, content: str):
         self.__subject = subject
         self.__content = content
-        
+
+
     def send_email(self):
         yag = yagmail.SMTP(user={self.__sender_email: self.__sender_name}, password=self.__password)
         if self.__receiver_email_list == [""]:

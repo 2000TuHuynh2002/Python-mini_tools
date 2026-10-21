@@ -2,8 +2,8 @@
 
 import argparse
 import textwrap
-
 from local_snmp import SNMPHandler
+
 
 
 def shell_handle():
@@ -36,6 +36,7 @@ def shell_handle():
 
     snmp = SNMPHandler(args.host, args.port, args.community, args.name)
     snmp.run()
+    
     return
 
 

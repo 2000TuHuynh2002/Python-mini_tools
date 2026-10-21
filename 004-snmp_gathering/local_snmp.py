@@ -6,11 +6,11 @@ import os
 import pandas as pd
 import time
 import warnings
-
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch, helpers
 from puresnmp import Client, V2C, PyWrapper
+
 
 
 load_dotenv()
@@ -20,6 +20,7 @@ ES_HOST = os.getenv('ES_HOST')
 CA_CERT_PARTH = "./certs/ca.crt"
 ES_USERNAME = os.getenv('TRANSPORT_USERNAME')
 ES_PASSWORD = os.getenv('TRANSPORT_PASSWORD')
+
 
 
 class SNMPHandler:
@@ -54,6 +55,7 @@ class SNMPHandler:
             self.prev_data.set_index('idx', inplace=True)
         else:
             self.prev_data = pd.DataFrame()
+
         if os.path.exists(f"./output/temp.{self.hostname}.json"):
             with open(f"./output/temp.{self.hostname}.json", 'r') as f:
                 data = json.load(f)
@@ -62,6 +64,7 @@ class SNMPHandler:
         else:
             self.prev_t_in = time.time()
             self.prev_t_out = time.time()
+
 
     async def check_connection(self):
         try:
@@ -72,6 +75,7 @@ class SNMPHandler:
         except Exception:
             print(f"[-][{self.dt_now}][{self.hostname}]: Failed to connect to the device")
             return False
+
 
     async def get_sysInfo(self):
         time.sleep(1)
@@ -86,6 +90,7 @@ class SNMPHandler:
             self.sys_ram = await self.client.get('.1.3.6.1.4.1.2636.3.1.13.1.11.9.1.0.0')
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP get SysInfo: {e}")
+
 
     async def get_alarm(self):
         time.sleep(1)
@@ -105,6 +110,7 @@ class SNMPHandler:
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP get Alarm: {e}")
 
+
     async def walk_ifAlias(self):
         time.sleep(1)
         try:
@@ -119,6 +125,7 @@ class SNMPHandler:
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP walk Alias: {e}")
 
+
     async def walk_ifName(self):
         time.sleep(1)
         try:
@@ -127,6 +134,7 @@ class SNMPHandler:
                 self.data.loc[req_oid.split('.')[-1], 'ifName'] = val
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP walk Name: {e}")
+
 
     async def walk_ifSpeed(self):
         time.sleep(1)
@@ -137,6 +145,7 @@ class SNMPHandler:
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP walk Speed: {e}")
 
+
     async def walk_ifOperStatus(self):
         time.sleep(1)
         try:
@@ -146,6 +155,7 @@ class SNMPHandler:
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP walk OperStatus: {e}")
 
+
     async def walk_ifAdminStatus(self):
         time.sleep(1)
         try:
@@ -154,6 +164,7 @@ class SNMPHandler:
                 self.data.loc[req_oid.split('.')[-1], 'ifAdminStatus'] = val
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP walk AdminStatus: {e}")
+
 
     async def walk_ifHCInOctets(self):
         time.sleep(1)
@@ -166,6 +177,7 @@ class SNMPHandler:
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP walk HCInOctets: {e}")
 
+
     async def walk_ifHCOutOctets(self):
         time.sleep(1)
         try:
@@ -177,6 +189,7 @@ class SNMPHandler:
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP walk HCOutOctets: {e}")
 
+
     async def walk_jnxDomCurrentRxLaserPower(self):
         time.sleep(1)
         try:
@@ -185,6 +198,7 @@ class SNMPHandler:
                 self.data.loc[req_oid.split('.')[-1], 'jnxDomCurrentRxLaserPower'] = val
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP walk CurrentRxLaserPower: {e}")
+
 
     async def walk_jnxDomCurrentRxLaserPowerHighWarningThreshold(self):
         time.sleep(1)
@@ -195,6 +209,7 @@ class SNMPHandler:
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP walk CurrentRxLaserPowerHighWarningThreshold: {e}")
 
+
     async def walk_jnxDomCurrentRxLaserPowerLowWarningThreshold(self):
         time.sleep(1)
         try:
@@ -203,6 +218,7 @@ class SNMPHandler:
                 self.data.loc[req_oid.split('.')[-1], 'jnxDomCurrentRxLaserPowerLowWarningThreshold'] = val
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during SNMP walk CurrentRxLaserPowerLowWarningThreshold: {e}")
+
 
     @staticmethod
     def traffic_calc(ifOctets_1, t1, ifOctets_2, t2):
@@ -213,6 +229,7 @@ class SNMPHandler:
             result = (((18_446_744_073_709_551_615 - ifOctets_1) + ifOctets_2 + 1)*8)/(t2 - t1)
         return round(result)
         # return round((((ifOctets_2-ifOctets_1) & 0xFFFFFFFFFFFFFFFF) * 8) / (t2-t1))
+
 
     def cleanData(self):
         self.data = self.data[self.data['ifDescr'] != b'']
@@ -233,10 +250,12 @@ class SNMPHandler:
         self.data['ifOperStatus'] = self.data['ifOperStatus'].map(status_map).fillna("testing")
         self.data['ifAdminStatus'] = self.data['ifAdminStatus'].map(status_map).fillna("testing")
 
+
     @staticmethod
     def saveFileInJson(file_name, data):
         with open(file_name, 'w') as f:
             json.dump(data, f)
+
 
     def es_indexDocument(self, index_name, data, data_id=None, delete=False):
         if delete:
@@ -246,6 +265,7 @@ class SNMPHandler:
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during send data to Elastic: {e}")
 
+
     def es_bulkDocument(self, index_name, data, delete=False):
         if delete:
             self.esClient.indices.delete(index=index_name, ignore_unavailable=True)
@@ -253,6 +273,7 @@ class SNMPHandler:
             helpers.bulk(self.esClient, data, index=index_name, chunk_size=1000, request_timeout=120, max_retries=3)
         except Exception as e:
             print(f"[-][{self.dt_now}][{self.hostname}]: Error during bulk data to Elastic: {e}")
+
 
     def saveDataSys(self):
         data_item = {
@@ -279,6 +300,7 @@ class SNMPHandler:
         self.es_indexDocument(f"{self.index_prefix}-sys.health", data_stream_items)
         print(f"[+][{self.dt_now}][{self.hostname}]: Upload data[sysInfo] successfully")
 
+
     # def saveDataAlarm(self):
     #     data_item = {
     #         "@timestamp": self.dt_isoformat,
@@ -291,6 +313,7 @@ class SNMPHandler:
     #     }
     #     self.es_indexDocument(f"{self.index_prefix}-sys.general", data_item, 2)
     #     print(f"[+][{self.dt_now}][{self.hostname}]: Upload data[alarm] successfully")
+
 
     def saveDataIf(self):
         data_ifGeneral = []
@@ -357,6 +380,7 @@ class SNMPHandler:
         self.data[['ifHCInOctets', 'ifHCOutOctets']].to_csv(f'./output/temp.{self.hostname}.csv')
         print(f"[+][{self.dt_now}][{self.hostname}]: Upload data[interface] successfully")
 
+
     async def gather_data(self):
         check = await self.check_connection()
         if check:
@@ -373,6 +397,7 @@ class SNMPHandler:
             await self.walk_jnxDomCurrentRxLaserPowerHighWarningThreshold()
             await self.walk_jnxDomCurrentRxLaserPowerLowWarningThreshold()
             print(f"[+][{self.dt_now}][{self.hostname}]: Gathering SNMP info successfully")
+
 
     def run(self):
         os.makedirs("./output", exist_ok=True)

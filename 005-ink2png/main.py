@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-
-
 """Tách nét chữ viết tay khỏi nền giấy, xuất PNG nền trong suốt.
 Developer:
     Claude: Opus 5.5

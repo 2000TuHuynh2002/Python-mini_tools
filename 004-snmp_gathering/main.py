@@ -6,9 +6,11 @@ import threading
 import time
 
 
+
 HOSTS_FILE = "hosts.yml"
 RUNNING_PROCESS = {}
 INTERVAL = 300
+
 
 
 def call_pyshell(info):
@@ -19,10 +21,12 @@ def call_pyshell(info):
             command = f'python3 local_pyshell.py {info['host']} {info['port']} {info['community']} {info['name']}'
             result = subprocess.run(command.split(' '))
             end_time = time.time()
+
             if result.returncode == 0:
                 RUNNING_PROCESS[info['name']] = ["[+]", round(end_time - start_time, 4)]
             else:
                 RUNNING_PROCESS[info['name']] = ["[-]", round(end_time - start_time, 4)]
+                
         except:
             RUNNING_PROCESS[info['name']] = ["[x]", 0]
         time.sleep(INTERVAL)
